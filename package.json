@@ -1,0 +1,12 @@
+{
+  "name": "rec9",
+  "description": "...",
+  "version": "0.1.0",
+  "license": "GPLv3",
+  "devDependencies": {
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "@types/node": "^16.11.6"
+  }
+}
