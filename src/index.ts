@@ -1,4 +1,4 @@
-import * as http from 'http' 
+import * as http from 'http'
 
 const api_key = ""
 const ml_options = {
@@ -36,9 +36,15 @@ function runWebAPIRequest(options: any) {
         console.log(`statusCode: ${res.statusCode}`)
 
         //result is a stream and hence requires another callback to read data
-        res.on('data', d => {
-            process.stdout.write(d)
-        })
+        let responseBody = '';
+
+        res.on('data', (chunk) => {
+            responseBody += chunk;
+        });
+
+        res.on('end', () => {
+            console.log(responseBody);
+        });
     })
 
     //set up callback for error
@@ -50,4 +56,37 @@ function runWebAPIRequest(options: any) {
     req.end()
 }
 
-runWebAPIRequest(ml_options)
+
+function promisifiedRequest(options: any): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const req = http.request(options)
+        req.on('response', async (res: http.IncomingMessage) => {
+            res.setEncoding('utf8');
+            let responseBody = '';
+
+            res.on('data', (chunk) => {
+                responseBody += chunk;
+            });
+
+            res.on('end', () => {
+                resolve(responseBody);
+            });
+        })
+        req.on('error', error => {
+            reject(error)
+        })
+        req.end()
+    });
+};
+
+
+
+// run a single request:
+
+runWebAPIRequest(demo_options)
+
+// run a request asynchronously
+const promise = promisifiedRequest(demo_options)
+promise.then(r => console.log(r))
+
+// TODO: run 100 demo requests, 10 in parallel
