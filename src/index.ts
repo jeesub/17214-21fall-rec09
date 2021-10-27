@@ -1,26 +1,27 @@
 import * as http from 'http'
+import * as https from 'https'
 
 const api_key = ""
 const ml_options = {
-    hostname: "https://api.clarifai.com/v2/models/bd367be194cf45149e75f01d59f77ba7/outputs",
-    path: '/',
+    hostname: "api.clarifai.com",
+    path: '/v2/models/bd367be194cf45149e75f01d59f77ba7/outputs',
     method: 'POST',
     headers: {
         "Content-Type": "application/json",
         "Authorization": "Key " + api_key
-    },
-    body: `{
-        "inputs": [
-          {
-            "data": {
-              "image": {
-                "url": "https://i.imgur.com/ROLJaSi.jpeg"
-              }
-            }
-          }
-        ]
-      }`
+    }
 }
+const ml_request_data = `{
+    "inputs": [
+      {
+        "data": {
+          "image": {
+            "url": "https://i.imgur.com/ROLJaSi.jpeg"
+          }
+        }
+      }
+    ]
+  }`
 
 const demo_options = {
     hostname: "feature.isri.cmu.edu",
@@ -30,8 +31,8 @@ const demo_options = {
 }
 
 
-function runWebAPIRequest(options: any) {
-    const req = http.request(options, res => {
+function runHttpsRequest(options: any, postData: string) {
+    const req = https.request(options, res => {
         //callback for nonerror results
         console.log(`statusCode: ${res.statusCode}`)
 
@@ -51,16 +52,17 @@ function runWebAPIRequest(options: any) {
     req.on('error', error => {
         console.error(error)
     })
+    req.write(postData)
 
     //finishes sending the request
     req.end()
 }
 
 
-function promisifiedRequest(options: any): Promise<string> {
+function promisifiedHttpRequest(options: any): Promise<string> {
     return new Promise((resolve, reject) => {
         const req = http.request(options)
-        req.on('response', async (res: http.IncomingMessage) => {
+        req.on('response', async (res) => {
             res.setEncoding('utf8');
             let responseBody = '';
 
@@ -83,10 +85,10 @@ function promisifiedRequest(options: any): Promise<string> {
 
 // run a single request:
 
-runWebAPIRequest(demo_options)
+runHttpsRequest(ml_options, ml_request_data)
 
 // run a request asynchronously
-const promise = promisifiedRequest(demo_options)
+const promise = promisifiedHttpRequest(demo_options)
 promise.then(r => console.log(r))
 
 // TODO: run 100 demo requests, 10 in parallel
